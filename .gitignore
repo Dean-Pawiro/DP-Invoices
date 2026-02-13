@@ -1,0 +1,61 @@
+# Node
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.env
+.env.*
+.DS_Store
+
+# Ignore backend build and portable files
+backend/backend.exe
+backend/index-packaged.js
+backend/download-chromium.js
+backend/setup.js
+backend/invoices.db
+
+# Ignore frontend build and node_modules
+frontend/build/
+frontend/node_modules/
+frontend/.env
+
+# Ignore resources (portable/production artifacts)
+resources/
+
+# Ignore uploads (user files)
+uploads/
+
+# Ignore VSCode settings
+.vscode/
+
+# Ignore OS files
+Thumbs.db
+Desktop.ini
+
+# Ignore Chromium binaries
+backend/.local-chromium/
+
+# Electron
+/dist/
+/build/
+*.log
+*.tsbuildinfo
+
+# Chromium binaries
+backend/.local-chromium/
+
+# React
+frontend/build/
+frontend/node_modules/
+frontend/.env
+
+# VSCode
+.vscode/
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# Misc
+uploads/
+resources/

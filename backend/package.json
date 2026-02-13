@@ -1,0 +1,32 @@
+{
+  "name": "dp-invoices-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "build": "pkg index.js --targets node18-win-x64 --output backend.exe",
+    "package": "npm run build && npm run copy-deps",
+    "copy-deps": "xcopy /E /I /Y node_modules\\sqlite3\\lib\\binding\\*.* dist\\sqlite3-binding\\ && xcopy /E /I /Y node_modules\\puppeteer\\.local-chromium\\*.* dist\\puppeteer-chromium\\"
+  },
+  "dependencies": {
+    "axios": "^1.13.4",
+    "body-parser": "^2.2.2",
+    "cheerio": "^1.0.0-rc.12",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "multer": "^2.0.2",
+    "pdfmake": "^0.3.3",
+    "puppeteer": "^24.36.0",
+    "sqlite3": "^5.1.7"
+  },
+  "pkg": {
+    "scripts": [
+      "index.js",
+      "routes/**/*.js"
+    ],
+    "assets": [
+      "node_modules/sqlite3/lib/binding/**/*",
+      "node_modules/sqlite3/build/**/*"
+    ]
+  }
+}
