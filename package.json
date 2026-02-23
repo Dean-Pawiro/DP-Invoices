@@ -1,49 +1,13 @@
 {
   "name": "dp-invoices",
   "version": "1.0.1",
-  "main": "electron/main.js",
+  "main": "index.js",
   "scripts": {
     "dev": "concurrently \"npm start --prefix frontend\" \"npm start --prefix backend\"",
     "build": "npm run build --prefix frontend",
     "start": "concurrently \"npm start --prefix backend\" \"npm start --prefix frontend\"",
-    "electron": "electron .",
     "build:react": "npm run build --prefix frontend",
     "postinstall": "npm install --prefix backend && npm install --prefix frontend"
-  },
-  "build": {
-    "appId": "com.invoice.app",
-    "productName": "DP Invoices",
-    "icon": "frontend/public/favicon.ico",
-    "win": {
-      "target": "portable",
-      "icon": "frontend/public/favicon.ico"
-    },
-    "extraResources": [
-      {
-        "from": "backend",
-        "to": "backend"
-      },
-      {
-        "from": "backend/node_modules/sqlite3",
-        "to": "backend/node_modules/sqlite3"
-      },
-      {
-        "from": "backend/node_modules/bindings",
-        "to": "backend/node_modules/bindings"
-      },
-      {
-        "from": "backend/node_modules/file-uri-to-path",
-        "to": "backend/node_modules/file-uri-to-path"
-      },
-      {
-        "from": "frontend/build",
-        "to": "frontend/build"
-      }
-    ]
-  },
-  "devDependencies": {
-    "electron": "^40.1.0",
-    "electron-builder": "^26.7.0"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
