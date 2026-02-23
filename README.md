@@ -32,10 +32,9 @@ You can add more users via the registration screen.
 
 
 ## Getting Started
-1. Install dependencies in each folder (`backend`, `frontend`)
-2. Start backend: `cd backend && npm start`
-3. Start frontend: `cd frontend && npm start`
-4. Start Electron: `cd electron && npm start` (or use `start.bat`)
+1. Install dependencies: `npm install`
+2. Start both backend and frontend: `npm start`
+3. For Electron desktop app: `cd electron && npm start` (or use `start.bat`)
 
 ## Authentication
 You must log in to access your invoices and clients. Each user only sees their own data. The default user is listed above.

@@ -3,10 +3,11 @@
   "version": "1.0.1",
   "main": "electron/main.js",
   "scripts": {
-    "dev": "concurrently \"npm start --prefix frontend\" \"node backend/index.js\" \"electron .\"",
-    "electron": "electron .",
-    "build:react": "npm run build --prefix frontend",
-    "build": "npm run build:react && electron-builder"
+     "dev": "concurrently \"npm start --prefix frontend\" \"npm start --prefix backend\"",
+     "build": "npm run build --prefix frontend",
+     "start": "concurrently \"npm start --prefix backend\" \"npm start --prefix frontend\"",
+     "electron": "electron .",
+     "build:react": "npm run build --prefix frontend"
   },
   "build": {
     "appId": "com.invoice.app",
