@@ -7,7 +7,8 @@
     "build": "npm run build --prefix frontend",
     "start": "concurrently \"npm start --prefix backend\" \"npm start --prefix frontend\"",
     "electron": "electron .",
-    "build:react": "npm run build --prefix frontend"
+    "build:react": "npm run build --prefix frontend",
+    "postinstall": "npm install --prefix backend && npm install --prefix frontend"
   },
   "build": {
     "appId": "com.invoice.app",
