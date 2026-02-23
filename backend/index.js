@@ -1,17 +1,31 @@
 // backend/index.js
+
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const session = require("express-session");
 
 const app = express();
 
-app.use(cors());
+
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 app.use(bodyParser.json());
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'change-this-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { secure: false } // Set to true if using HTTPS
+}));
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
+
+app.use("/api/auth", require("./routes/auth"));
 app.use("/api/invoices", require("./routes/invoices"));
 app.use("/api/clients", require("./routes/clients"));
 app.use("/api/company", require("./routes/company"));

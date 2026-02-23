@@ -114,6 +114,10 @@ body.dark-mode .settings-section {
   width: 100%;
 }
 
+.settings-item label {
+    min-width: 200px;
+}
+
 .db-status-row {
   display: flex;
   align-items: center;
@@ -149,6 +153,10 @@ body.dark-mode .settings-section {
   color: #664d03;
   background: #fff3cd;
   border-color: #ffecb5;
+}
+
+.btn-save{
+  max-width: 200px;
 }
 
 .btn-secondary {
@@ -409,4 +417,76 @@ body.dark-mode .backup-select {
   .btn-export {
     width: 100%;
   }
+}
+
+.account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  max-width: 100%;
+  margin-top: 1.5rem;
+}
+.account-form label {
+  font-weight: 500;
+  margin-bottom: 0.3rem;
+  color: #2c3e50;
+}
+.account-form input {
+  padding: 0.8rem 1rem;
+  font-size: 1.05rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  outline: none;
+  background: #f9fafb;
+  margin-top: 0.2rem;
+}
+.account-form input:focus {
+  border-color: #1976d2;
+  background: #fff;
+}
+.account-form .btn-export {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.8rem 1.2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.account-form .btn-export:hover {
+  background: #125ea2;
+}
+.account-form .btn-logout {
+  background: #fff;
+  color: #d32f2f;
+  border: 1px solid #d32f2f;
+  border-radius: 8px;
+  padding: 0.8rem 1.2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.account-form .btn-logout:hover {
+  background: #ffeaea;
+  color: #fff;
+  background: #d32f2f;
+}
+.account-form .error {
+  color: #d32f2f;
+  background: #ffeaea;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  text-align: center;
+  font-size: 1rem;
+}
+.account-form .success {
+  color: #388e3c;
+  background: #e8f5e9;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  text-align: center;
+  font-size: 1rem;
 }

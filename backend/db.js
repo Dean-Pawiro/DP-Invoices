@@ -58,6 +58,30 @@ const initializeTables = (dbInstance) => {
       )
     `);
 
+
+    dbInstance.run(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    `, [], function() {
+      // Insert default master/master user if no users exist
+      dbInstance.get('SELECT COUNT(*) as count FROM users', (err, row) => {
+        if (!err && row && row.count === 0) {
+          const masterHash = '$2b$10$ud3wjoZsdP2GjfMpCDZsQ..b9PWgCCp9hD.DvlAh8d4uq9XHm8cl2';
+          dbInstance.run('INSERT INTO users (username, password_hash) VALUES (?, ?)', ['master', masterHash], (err2) => {
+            if (err2) {
+              console.error('Error inserting default master user:', err2.message);
+            } else {
+              console.log('✅ Default user "master" created (password: master)');
+            }
+          });
+        }
+      });
+    });
+
     // Migrate existing company table to add bank info columns if they don't exist
     dbInstance.all("PRAGMA table_info(company)", (err, columns) => {
       if (!err && columns) {
@@ -83,10 +107,12 @@ const initializeTables = (dbInstance) => {
     dbInstance.run(`
       CREATE TABLE IF NOT EXISTS clients (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
         contact_person TEXT,
         email TEXT,
         phone TEXT,
-        address TEXT
+        address TEXT,
+        FOREIGN KEY(user_id) REFERENCES users(id)
       )
     `);
 
@@ -96,6 +122,7 @@ const initializeTables = (dbInstance) => {
     dbInstance.run(`
       CREATE TABLE IF NOT EXISTS invoices (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
         invoice_number TEXT,
         client_id INTEGER,
         project TEXT,
@@ -105,7 +132,8 @@ const initializeTables = (dbInstance) => {
         notes TEXT,
         created_at TEXT,
         paid_at TEXT,
-        advance_paid_at TEXT
+        advance_paid_at TEXT,
+        FOREIGN KEY(user_id) REFERENCES users(id)
       )
     `);
 

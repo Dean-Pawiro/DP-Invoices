@@ -46,6 +46,46 @@ export default function Invoices() {
     }
   };
 
+  const handleDownloadPdf = async (id, invoiceNumber) => {
+    try {
+      const response = await API.get(`/invoices/${id}/pdf/${invoiceNumber}`, {
+        responseType: 'blob',
+        withCredentials: true,
+      });
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      // Remove 'Invoice-' prefix if present to avoid double
+      let cleanName = invoiceNumber;
+      if (cleanName.startsWith('Invoice-')) cleanName = cleanName.replace('Invoice-', '');
+      // Try to get status from invoices array
+      const invoiceObj = invoices.find(inv => inv.invoice_number === invoiceNumber);
+      const status = invoiceObj && invoiceObj.status ? '-' + invoiceObj.status : '';
+      link.download = `invoice-${cleanName}${status}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      if (err.response && err.response.data) {
+        // Try to pretty-print JSON error
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const json = JSON.parse(reader.result);
+            alert(JSON.stringify(json, null, 2));
+          } catch {
+            alert('Failed to download PDF: ' + reader.result);
+          }
+        };
+        reader.readAsText(err.response.data);
+      } else {
+        alert('Failed to download PDF: ' + (err.message || 'Unknown error'));
+      }
+    }
+  };
+
   const sortedInvoices = [...invoices].sort((a, b) => {
     let compareResult = 0;
     if (sortKey === "date") compareResult = new Date(b.invoice_date) - new Date(a.invoice_date);
@@ -204,7 +244,7 @@ export default function Invoices() {
               <td>${(inv.subtotal || 0).toFixed(2)}</td>
               <td>
                    <button className="action" title="Preview invoice"><a href={`${BACKEND_URL}/invoices/${inv.id}/preview`} target="_blank" rel="noreferrer"><img src="./view.png" alt="View" /></a></button>
-                   <button className="action" title="Download PDF"><a href={`${BACKEND_URL}/invoices/${inv.id}/pdf/${inv.invoice_number}`} target="_blank" rel="noreferrer"><img src="./pdf.png" alt="Download PDF" /></a></button>
+                   <button className="action" title="Download PDF" onClick={() => handleDownloadPdf(inv.id, inv.invoice_number)}><img src="./pdf.png" alt="Download PDF" /></button>
                    <button className="action" title="Edit invoice"><Link to={`/InvoiceEdit/${inv.id}`}><img src="./edit.png" alt="Edit" /></Link></button>
                    <button className="action" title="Delete invoice" onClick={() => handleDelete(inv.id)}><img src="./bin.png" alt="Delete" /></button>
               </td>

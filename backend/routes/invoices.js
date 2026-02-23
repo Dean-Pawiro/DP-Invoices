@@ -3,6 +3,15 @@ const router = express.Router();
 const db = require("../db");
 
 
+// Middleware to require login
+// function requireLogin(req, res, next) {
+//   if (!req.session || !req.session.userId) {
+//     return res.status(401).json({ error: "Not authenticated" });
+//   }
+//   next();
+// }
+
+
 /**
  * Helper: generate invoice number
  * Format: Invoice-YYMMDD + Letter (A-Z)
@@ -44,10 +53,10 @@ router.post("/", (req, res) => {
 
     // Insert invoice
     const sqlInvoice = `
-      INSERT INTO invoices (invoice_number, client_id, project, status, invoice_date, subtotal, notes, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO invoices (user_id, invoice_number, client_id, project, status, invoice_date, subtotal, notes, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    db.run(sqlInvoice, [invoice_number, client_id, project, status, invoiceDate, subtotal, notes, createdAt], function(err) {
+    db.run(sqlInvoice, [req.session.userId, invoice_number, client_id, project, status, invoiceDate, subtotal, notes, createdAt], function(err) {
       if (err) return res.status(500).json({ error: err.message });
 
       const invoice_id = this.lastID;
@@ -57,7 +66,6 @@ router.post("/", (req, res) => {
         INSERT INTO invoice_items (invoice_id, title, description, quantity, unit_price, total)
         VALUES (?, ?, ?, ?, ?, ?)
       `);
-
       for (const item of items) {
         const total = item.quantity * item.unit_price;
         stmt.run(invoice_id, item.title, item.description, item.quantity, item.unit_price, total);
@@ -72,27 +80,28 @@ router.post("/", (req, res) => {
 });
 
 /**
- * GET all invoices
+ * GET all invoices for logged-in user
  */
 router.get("/", (req, res) => {
   const sql = `
     SELECT i.*, c.company_name, c.contact_person
     FROM invoices i
     LEFT JOIN clients c ON i.client_id = c.id
+    WHERE i.user_id = ?
     ORDER BY invoice_date ASC
   `;
-  db.all(sql, [], (err, rows) => {
+  db.all(sql, [req.session.userId], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
   });
 });
 
 /**
- * GET single invoice with items
+ * GET single invoice for logged-in user
  */
 router.get("/:id", (req, res) => {
   const { id } = req.params;
-  db.get("SELECT * FROM invoices WHERE id = ?", [id], (err, invoice) => {
+  db.get("SELECT * FROM invoices WHERE id = ? AND user_id = ?", [id, req.session.userId], (err, invoice) => {
     if (err) return res.status(500).json({ error: err.message });
     if (!invoice) return res.status(404).json({ error: "Invoice not found" });
 
@@ -104,23 +113,8 @@ router.get("/:id", (req, res) => {
   });
 });
 
+// Remove duplicate /:id/preview and duplicate / route
 module.exports = router;
-
-router.get("/", (req, res) => {
-  const sql = `
-    SELECT i.id, i.invoice_number, i.invoice_date, i.status,
-           c.company_name AS client_name, com.name AS company_name,
-           i.subtotal AS total
-    FROM invoices i
-    LEFT JOIN clients c ON i.client_id = c.id
-    LEFT JOIN company com ON com.id = 1
-    ORDER BY i.invoice_date DESC
-  `;
-  db.all(sql, [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows);
-  });
-});
 
 router.patch("/:id", (req, res) => {
   const { id } = req.params;
@@ -179,7 +173,16 @@ router.patch("/:id", (req, res) => {
 router.get("/:id/preview", (req, res) => {
   const { id } = req.params;
 
-  // Get invoice, client, company info
+  // Detailed logging and timeout for debugging
+  let responded = false;
+  const timeout = setTimeout(() => {
+    if (!responded) {
+      responded = true;
+      console.error(`[PREVIEW] Route timed out for invoice id: ${id}`);
+      res.status(504).json({ error: "Preview route timed out" });
+    }
+  }, 10000); // 10 seconds
+
   db.get(
     `SELECT i.*, 
             c.company_name AS client_name, 
@@ -194,23 +197,52 @@ router.get("/:id/preview", (req, res) => {
     WHERE i.id = ?`,
     [id],
     (err, invoice) => {
-      if (err) return res.status(500).send(err.message);
-      if (!invoice) return res.status(404).send("Invoice not found");
+      if (responded) return;
+      if (err) {
+        responded = true;
+        clearTimeout(timeout);
+        console.error(`[PREVIEW] DB error for invoice id ${id}:`, err);
+        return res.status(500).json({ error: err.message });
+      }
+      if (!invoice) {
+        responded = true;
+        clearTimeout(timeout);
+        console.error(`[PREVIEW] Invoice not found for id: ${id}`);
+        return res.status(404).json({ error: "Invoice not found" });
+      }
 
       db.all(
         "SELECT * FROM invoice_items WHERE invoice_id = ?", 
         [id], 
         (err2, items) => {
-          if (err2) return res.status(500).send(err2.message);
+          if (responded) return;
+          if (err2) {
+            responded = true;
+            clearTimeout(timeout);
+            console.error(`[PREVIEW] Items DB error for invoice id ${id}:`, err2);
+            return res.status(500).json({ error: err2.message });
+          }
 
           const total = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+
+          // Calculate totals based on status
+          let deposit = total / 2;
+          let paid = 0;
+          let remaining = total;
+          if (invoice.status === 'Advance') {
+            paid = deposit;
+            remaining = total - deposit;
+          } else if (invoice.status === 'Paid') {
+            paid = total;
+            remaining = 0;
+          }
 
           const html = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>${invoice.invoice_number}</title>
+<title>${invoice.invoice_number}-${invoice.status}</title>
 
 <style>
 /* ---------- Global ---------- */
@@ -491,11 +523,15 @@ ${invoice.status === "Unpaid" ? `
   </div>
   <div class="totals-row">
     <span>Deposit (50%)</span>
-    <span>$${(total / 2).toFixed(2)}</span>
+    <span>$${deposit.toFixed(2)}</span>
+  </div>
+  <div class="totals-row">
+    <span>Paid</span>
+    <span>$${paid.toFixed(2)}</span>
   </div>
   <div class="totals-row totals-final">
     <span>Remaining Balance</span>
-    <span>$${(total / 2).toFixed(2)}</span>
+    <span>$${remaining.toFixed(2)}</span>
   </div>
 </div>
 
@@ -550,10 +586,11 @@ const puppeteer = require("puppeteer");
 
 router.get("/:id/pdf/:invoice", async (req, res) => {
   const { id } = req.params;
-  const invoiceParam = req.params.invoice;
+
+  // No session authentication or user ownership check for PDF export
 
   try {
-    // Determine Chromium path for pkg portability
+    console.log(`[PDF] Generating PDF for invoice id: ${id}`);
     let chromiumPath;
     if (process.pkg) {
       // Running inside pkg executable
@@ -608,13 +645,10 @@ router.get("/:id/pdf/:invoice", async (req, res) => {
     });
 
     const page = await browser.newPage();
-
-    // Load your preview page
     const BACKEND_PORT = process.env.BACKEND_PORT || 5000;
     await page.goto(`http://localhost:${BACKEND_PORT}/api/invoices/${id}/preview`, {
       waitUntil: "networkidle0"
     });
-
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
@@ -625,14 +659,27 @@ router.get("/:id/pdf/:invoice", async (req, res) => {
         right: "15mm"
       }
     });
+    await browser.close();
 
     await browser.close();
 
-    res.set({
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename=${invoiceParam}.pdf`,
-      "Content-Length": pdfBuffer.length
-    });
+      // Fetch invoice status for filename
+      let invoiceStatus = '';
+      try {
+        const row = await new Promise((resolve, reject) => {
+          db.get('SELECT status FROM invoices WHERE id = ?', [id], (err, row) => {
+            if (err) return reject(err);
+            resolve(row);
+          });
+        });
+        invoiceStatus = row && row.status ? '-' + row.status : '';
+      } catch {}
+
+      res.set({
+        "Content-Type": "application/pdf",
+        "Content-Disposition": 'attachment; filename="' + req.params.invoice + invoiceStatus + '.pdf"',
+        "Content-Length": pdfBuffer.length
+      });
 
     res.send(pdfBuffer);
 
@@ -666,10 +713,7 @@ router.put("/:id", (req, res) => {
   const subtotal = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
 
   // Build dynamic update query to handle optional timestamp fields
-  let sqlInvoice = `
-    UPDATE invoices 
-    SET client_id = ?, invoice_number = ?, invoice_date = ?, project = ?, status = ?, notes = ?, subtotal = ?
-  `;
+  let sqlInvoice = "UPDATE invoices SET client_id = ?, invoice_number = ?, invoice_date = ?, project = ?, status = ?, notes = ?, subtotal = ?";
   let params = [client_id, invoice_number, invoice_date, project, status, notes, subtotal];
 
   if (created_at !== undefined) {
@@ -698,10 +742,7 @@ router.put("/:id", (req, res) => {
       if (err) return res.status(500).json({ error: err.message });
 
       // Insert new items
-      const stmt = db.prepare(`
-        INSERT INTO invoice_items (invoice_id, title, description, quantity, unit_price, total)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `);
+      const stmt = db.prepare("INSERT INTO invoice_items (invoice_id, title, description, quantity, unit_price, total) VALUES (?, ?, ?, ?, ?, ?)");
 
       for (const item of items) {
         const total = item.quantity * item.unit_price;

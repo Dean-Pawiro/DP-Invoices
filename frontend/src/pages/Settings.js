@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import API from "../api";
 import "./Settings.css";
 
-export default function Settings() {
+export default function Settings({ onLogout }) {
   const [activeTab, setActiveTab] = useState("data");
   const [exporting, setExporting] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -20,6 +20,11 @@ export default function Settings() {
     checkedAt: null,
     error: "",
   });
+  // Account General state
+  const [userInfo, setUserInfo] = useState({ username: '', password: '', newPassword: '', confirmPassword: '' });
+  const [userInfoLoading, setUserInfoLoading] = useState(true);
+  const [userInfoError, setUserInfoError] = useState('');
+  const [userInfoSuccess, setUserInfoSuccess] = useState('');
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
@@ -208,6 +213,47 @@ export default function Settings() {
     localStorage.setItem("theme", nextMode ? "dark" : "light");
   };
 
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    if (onLogout) onLogout();
+    window.location.reload();
+  };
+
+  useEffect(() => {
+    // Fetch current user info for Account General
+    API.get('/auth/me')
+      .then(res => {
+        setUserInfo(u => ({ ...u, username: res.data.user.username }));
+        setUserInfoLoading(false);
+      })
+      .catch(() => setUserInfoLoading(false));
+  }, []);
+
+  const handleUserInfoChange = e => {
+    const { name, value } = e.target;
+    setUserInfo(u => ({ ...u, [name]: value }));
+  };
+
+  const handleUserInfoSave = async e => {
+    e.preventDefault();
+    setUserInfoError('');
+    setUserInfoSuccess('');
+    if (userInfo.newPassword && userInfo.newPassword !== userInfo.confirmPassword) {
+      setUserInfoError('Passwords do not match');
+      return;
+    }
+    try {
+      await API.post('/auth/update', {
+        username: userInfo.username,
+        password: userInfo.password,
+        newPassword: userInfo.newPassword
+      });
+      setUserInfoSuccess('Account updated successfully');
+      setUserInfo(u => ({ ...u, password: '', newPassword: '', confirmPassword: '' }));
+    } catch (err) {
+      setUserInfoError(err?.response?.data?.error || 'Failed to update account');
+    }
+  };
 
   return (
     <div className="settings-container">
@@ -232,10 +278,74 @@ export default function Settings() {
           >
             Appearance
           </button>
+          <button
+            className="settings-nav-item btn-logout"
+            style={{ color: 'red', marginTop: 24 }}
+            onClick={handleLogout}
+          >
+            Logout
+          </button>
         </nav>
       </div>
 
       <div className="settings-content">
+        {activeTab === "general" && (
+          <div className="settings-section">
+            <h2>Account General</h2>
+            <form className="account-form" onSubmit={handleUserInfoSave}>
+              <div className="settings-item">
+                <label>Username</label>
+                <input
+                  type="text"
+                  name="username"
+                  value={userInfo.username}
+                  onChange={handleUserInfoChange}
+                  autoComplete="username"
+                  required
+                  disabled={userInfoLoading}
+                />
+              </div>
+              <div className="settings-item">
+                <label>Current Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={userInfo.password}
+                  onChange={handleUserInfoChange}
+                  autoComplete="current-password"
+                  required
+                  disabled={userInfoLoading}
+                />
+              </div>
+              <div className="settings-item">
+                <label>New Password</label>
+                <input
+                  type="password"
+                  name="newPassword"
+                  value={userInfo.newPassword}
+                  onChange={handleUserInfoChange}
+                  autoComplete="new-password"
+                  disabled={userInfoLoading}
+                />
+              </div>
+              <div className="settings-item">
+                <label>Confirm New Password</label>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={userInfo.confirmPassword}
+                  onChange={handleUserInfoChange}
+                  autoComplete="new-password"
+                  disabled={userInfoLoading}
+                />
+              </div>
+              {userInfoError && <div className="error">{userInfoError}</div>}
+              {userInfoSuccess && <div className="success">{userInfoSuccess}</div>}
+              <button type="submit" className="btn-save" disabled={userInfoLoading}>Save</button>
+            </form>
+          </div>
+        )}
+
         {activeTab === "data" && (
           <div className="settings-section">
             <h2>Data Management</h2>
