@@ -3,11 +3,11 @@
   "version": "1.0.1",
   "main": "electron/main.js",
   "scripts": {
-     "dev": "concurrently \"npm start --prefix frontend\" \"npm start --prefix backend\"",
-     "build": "npm run build --prefix frontend",
-     "start": "concurrently \"npm start --prefix backend\" \"npm start --prefix frontend\"",
-     "electron": "electron .",
-     "build:react": "npm run build --prefix frontend"
+    "dev": "concurrently \"npm start --prefix frontend\" \"npm start --prefix backend\"",
+    "build": "npm run build --prefix frontend",
+    "start": "concurrently \"npm start --prefix backend\" \"npm start --prefix frontend\"",
+    "electron": "electron .",
+    "build:react": "npm run build --prefix frontend"
   },
   "build": {
     "appId": "com.invoice.app",
@@ -46,6 +46,7 @@
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "concurrently": "^9.2.1",
     "express-session": "^1.19.0",
     "sqlite3": "^5.1.7"
   }
