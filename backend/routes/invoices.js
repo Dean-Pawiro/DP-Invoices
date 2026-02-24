@@ -641,7 +641,7 @@ router.get("/:id/pdf/:invoice", async (req, res) => {
     // Launch Puppeteer
     const browser = await puppeteer.launch({
       headless: "new",
-      executablePath: chromiumPath
+      args: ["--no-sandbox", "--disable-setuid-sandbox"]
     });
 
     const page = await browser.newPage();
