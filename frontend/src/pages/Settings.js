@@ -41,7 +41,7 @@ export default function Settings({ onLogout }) {
   const fetchDbStatus = async () => {
     try {
       setDbStatus((prev) => ({ ...prev, loading: true, error: "" }));
-      const response = await API.get("/database/status");
+      const response = await API.get("/api/database/status");
       setDbStatus({
         loading: false,
         ok: response.data?.ok === true,
@@ -63,7 +63,7 @@ export default function Settings({ onLogout }) {
   const handleExportDatabase = async () => {
     try {
       setExporting(true);
-      const response = await API.get("/database/export", {
+      const response = await API.get("/api/database/export", {
         responseType: "blob",
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -86,7 +86,7 @@ export default function Settings({ onLogout }) {
   const fetchBackups = async () => {
     try {
       setLoadingBackups(true);
-      const response = await API.get("/database/backups");
+      const response = await API.get("/api/database/backups");
       const list = response.data?.backups || [];
       setBackups(list);
       if (list.length === 0) {
@@ -223,7 +223,8 @@ export default function Settings({ onLogout }) {
     // Fetch current user info for Account General
     API.get('/auth/me')
       .then(res => {
-        setUserInfo(u => ({ ...u, username: res.data.user.username }));
+        const username = res?.data?.user?.username || '';
+        setUserInfo(u => ({ ...u, username }));
         setUserInfoLoading(false);
       })
       .catch(() => setUserInfoLoading(false));
