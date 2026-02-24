@@ -36,8 +36,7 @@ app.use("/api/database", require("./routes/database"));
 // Serve frontend build in production
 const path = require('path');
 app.use(express.static(path.join(__dirname, '../frontend/build')));
-app.get('/*', (req, res) => {
-  // Only serve index.html for non-API routes
+app.use((req, res, next) => {
   if (!req.path.startsWith('/api')) {
     res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
   } else {
