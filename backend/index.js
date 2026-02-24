@@ -46,7 +46,8 @@ app.use((req, res, next) => {
 
 const PORT = process.env.BACKEND_PORT || 5000;
 const server = app.listen(PORT, () => {
-  console.log(`🚀 Backend running at http://localhost:${PORT}`);
+  const domain = process.env.DOMAIN || `http://localhost:${PORT}`;
+  console.log(`🚀 Backend running at ${domain}`);
 });
 
 // Keep the process alive and handle errors gracefully

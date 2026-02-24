@@ -78,7 +78,7 @@ export default function InvoiceEdit() {
   const handleSubmit = () => {
     if (!selectedClient) return alert("Please select a client");
     
-    API.put(`/invoices/${id}`, {
+    API.put(`/api/invoices/${id}`, {
       client_id: selectedClient,
       invoice_number: invoiceNumber,
       invoice_date: invoiceDate,

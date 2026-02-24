@@ -108,6 +108,7 @@ const initializeTables = (dbInstance) => {
       CREATE TABLE IF NOT EXISTS clients (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
+        company_name TEXT,
         contact_person TEXT,
         email TEXT,
         phone TEXT,
@@ -116,8 +117,15 @@ const initializeTables = (dbInstance) => {
       )
     `);
 
-    // Note: SQLite doesn't support dropping columns in older versions, 
-    // but company_name will be ignored in queries if it exists in old databases
+    // Add company_name column to clients if it doesn't exist (for migrations)
+    dbInstance.all("PRAGMA table_info(clients)", (err, columns) => {
+      if (!err && columns && !columns.some(col => col.name === 'company_name')) {
+        dbInstance.run("ALTER TABLE clients ADD COLUMN company_name TEXT", (err) => {
+          if (err) console.error("Error adding company_name column to clients:", err.message);
+          else console.log("✅ Added company_name column to clients table");
+        });
+      }
+    });
 
     dbInstance.run(`
       CREATE TABLE IF NOT EXISTS invoices (

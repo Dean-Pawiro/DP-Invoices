@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import API from "../api";
 import { Link } from "react-router-dom";
+
 // Get backend URL for PDF/preview links
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000/api";
+const BACKEND_URL = window.location.origin + "/api";
 
 
 export default function Invoices() {
@@ -25,7 +26,7 @@ export default function Invoices() {
   };
 
   const handleStatusChange = (id, newStatus) => {
-    API.patch(`/invoices/${id}`, { status: newStatus })
+    API.patch(`/api/invoices/${id}`, { status: newStatus })
       .then(() => fetchInvoices())
       .catch((err) => {
         console.error(err);
@@ -36,7 +37,7 @@ export default function Invoices() {
 
   const handleDelete = (id) => {
     if (window.confirm("Are you sure you want to delete this invoice?")) {
-      API.delete(`/invoices/${id}`)
+      API.delete(`/api/invoices/${id}`)
         .then(() => fetchInvoices())
         .catch((err) => {
           console.error(err);
