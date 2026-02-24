@@ -16,7 +16,7 @@ function Clients() {
   }, []);
 
   const fetchClients = () => {
-    API.get("/clients").then(res => setClients(res.data));
+    API.get("/api/clients").then(res => setClients(res.data));
   };
 
   const handleChange = (e) => {

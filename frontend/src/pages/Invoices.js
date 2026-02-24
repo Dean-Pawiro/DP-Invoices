@@ -16,7 +16,7 @@ export default function Invoices() {
   }, []);
 
   const fetchInvoices = () => {
-    API.get("/invoices")
+    API.get("/api/invoices")
       .then((res) => setInvoices(res.data))
       .catch((err) => {
         console.error(err);
@@ -48,7 +48,7 @@ export default function Invoices() {
 
   const handleDownloadPdf = async (id, invoiceNumber) => {
     try {
-      const response = await API.get(`/invoices/${id}/pdf/${invoiceNumber}`, {
+      const response = await API.get(`/api/invoices/${id}/pdf/${invoiceNumber}`, {
         responseType: 'blob',
         withCredentials: true,
       });

@@ -39,7 +39,7 @@ function Dashboard() {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const response = await API.get("/invoices/stats/overview");
+      const response = await API.get("/api/invoices/stats/overview");
       setStats(response.data);
       setError(null);
     } catch (err) {
@@ -53,7 +53,7 @@ function Dashboard() {
   const fetchRates = async () => {
     try {
       setRatesLoading(true);
-      const response = await API.get("/rates/cme");
+      const response = await API.get("/api/rates/cme");
       setRates(response.data);
       localStorage.setItem("cmeRatesCache", JSON.stringify(response.data));
       setRatesError(null);
