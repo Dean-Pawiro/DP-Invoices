@@ -28,8 +28,8 @@ export default function InvoiceEdit() {
         alert("Failed to fetch clients");
       });
 
-    // Fetch invoice data
-    API.get(`/invoices/${id}`)
+    // Fetch invoice data (correct endpoint)
+    API.get(`/api/invoices/${id}`)
       .then((res) => {
         const invoice = res.data;
         setSelectedClient(invoice.client_id || "");
@@ -38,7 +38,6 @@ export default function InvoiceEdit() {
         setStatus(invoice.status || "Unpaid");
         setInvoiceNumber(invoice.invoice_number || "");
         setInvoiceDate(invoice.invoice_date || "");
-        
         // Set items if they exist
         if (invoice.items && invoice.items.length > 0) {
           setItems(invoice.items.map(item => ({
@@ -48,7 +47,6 @@ export default function InvoiceEdit() {
             unit_price: item.unit_price || 0,
           })));
         }
-        
         setLoading(false);
       })
       .catch((err) => {
