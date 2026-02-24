@@ -12,7 +12,7 @@ function Company() {
   });
 
   useEffect(() => {
-    API.get("/company").then(res => setCompany(res.data || {}));
+    API.get("/api/company").then(res => setCompany(res.data || {}));
   }, []);
 
   const handleChange = (e) => {
@@ -20,7 +20,7 @@ function Company() {
   };
 
   const handleSubmit = () => {
-    API.post("/company", company).then(res => alert("Saved successfully"));
+    API.post("/api/company", company).then(res => alert("Saved successfully"));
   };
 
   return (

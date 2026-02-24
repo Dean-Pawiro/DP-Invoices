@@ -21,7 +21,7 @@ export default function InvoiceEdit() {
 
   useEffect(() => {
     // Fetch clients
-    API.get("/clients")
+    API.get("/api/clients")
       .then((res) => setClients(res.data))
       .catch((err) => {
         console.error(err);

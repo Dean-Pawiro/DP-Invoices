@@ -16,7 +16,7 @@ export default function InvoiceCreate() {
   const [submittedInvoice, setSubmittedInvoice] = useState(null);
 
   useEffect(() => {
-    API.get("/clients").then((res) => setClients(res.data));
+    API.get("/api/clients").then((res) => setClients(res.data));
   }, []);
 
   const handleItemChange = (index, field, value) => {
@@ -36,7 +36,7 @@ export default function InvoiceCreate() {
 
   const handleSubmit = () => {
     if (!selectedClient) return alert("Select a client");
-    API.post("/invoices", {
+    API.post("/api/invoices", {
       client_id: selectedClient,
       project,
       items,

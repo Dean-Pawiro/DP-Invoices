@@ -124,7 +124,7 @@ export default function Settings({ onLogout }) {
       const formData = new FormData();
       formData.append("database", file);
 
-      const response = await API.post("/database/import", formData, {
+      const response = await API.post("/api/database/import", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -150,7 +150,7 @@ export default function Settings({ onLogout }) {
 
     try {
       setRestarting(true);
-      const response = await API.post("/database/restart");
+      const response = await API.post("/api/database/restart");
       alert(response.data.message || "Database restarted successfully");
       await fetchDbStatus();
     } catch (err) {
@@ -172,7 +172,7 @@ export default function Settings({ onLogout }) {
 
     try {
       setRestoringBackup(true);
-      const response = await API.post("/database/backups/use", {
+      const response = await API.post("/api/database/backups/use", {
         filename: selectedBackup,
       });
       alert(response.data.message || "Backup restored successfully");
@@ -194,7 +194,7 @@ export default function Settings({ onLogout }) {
 
     try {
       setDeletingBackups(true);
-      const response = await API.post("/database/backups/delete-all");
+      const response = await API.post("/api/database/backups/delete-all");
       alert(`Deleted ${response.data.deleted || 0} backups`);
       setSelectedBackup("");
       await fetchBackups();
@@ -221,7 +221,7 @@ export default function Settings({ onLogout }) {
 
   useEffect(() => {
     // Fetch current user info for Account General
-    API.get('/auth/me')
+    API.get('/api/auth/me')
       .then(res => {
         const username = res?.data?.user?.username || '';
         setUserInfo(u => ({ ...u, username }));
@@ -244,7 +244,7 @@ export default function Settings({ onLogout }) {
       return;
     }
     try {
-      await API.post('/auth/update', {
+      await API.post('/api/auth/update', {
         username: userInfo.username,
         password: userInfo.password,
         newPassword: userInfo.newPassword

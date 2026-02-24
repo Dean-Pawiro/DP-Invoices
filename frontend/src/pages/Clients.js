@@ -24,7 +24,7 @@ function Clients() {
   };
 
   const handleAdd = () => {
-    API.post("/clients", newClient).then(res => {
+    API.post("/api/clients", newClient).then(res => {
       alert("Client added");
       setNewClient({ contact_person: "", email: "", phone: "", address: "" });
       fetchClients();
@@ -33,7 +33,7 @@ function Clients() {
 
   const handleDelete = (id) => {
     if (window.confirm("Are you sure you want to delete this client?")) {
-      API.delete(`/clients/${id}`)
+      API.delete(`/api/clients/${id}`)
       .then(res => {
         alert("Client deleted");
         fetchClients();
@@ -55,7 +55,7 @@ function Clients() {
   };
 
   const handleUpdate = () => {
-    API.put(`/clients/${editClient.id}`, editClient).then(res => {
+    API.put(`/api/clients/${editClient.id}`, editClient).then(res => {
       alert("Client updated");
       setEditClient(null);
       setIsEditing(false);
