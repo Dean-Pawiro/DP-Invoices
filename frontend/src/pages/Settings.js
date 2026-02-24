@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import API from "../api";
 import "./Settings.css";
 
@@ -32,6 +32,24 @@ export default function Settings({ onLogout }) {
     setDarkMode(isDark);
     document.body.classList.toggle("dark-mode", isDark);
   }, []);
+
+  const fetchBackups = useCallback(async () => {
+    try {
+      setLoadingBackups(true);
+      const response = await API.get("/api/database/backups");
+      const list = response.data?.backups || [];
+      setBackups(list);
+      if (list.length === 0) {
+        setSelectedBackup("");
+      } else if (!list.includes(selectedBackup)) {
+        setSelectedBackup(list[0]);
+      }
+    } catch (err) {
+      console.error("Failed to load backups:", err);
+    } finally {
+      setLoadingBackups(false);
+    }
+  }, [selectedBackup]);
 
   useEffect(() => {
     fetchDbStatus();
@@ -83,23 +101,7 @@ export default function Settings({ onLogout }) {
     }
   };
 
-  const fetchBackups = async () => {
-    try {
-      setLoadingBackups(true);
-      const response = await API.get("/api/database/backups");
-      const list = response.data?.backups || [];
-      setBackups(list);
-      if (list.length === 0) {
-        setSelectedBackup("");
-      } else if (!list.includes(selectedBackup)) {
-        setSelectedBackup(list[0]);
-      }
-    } catch (err) {
-      console.error("Failed to load backups:", err);
-    } finally {
-      setLoadingBackups(false);
-    }
-  };
+
 
   const handleImportDatabase = async (event) => {
     const file = event.target.files?.[0];
