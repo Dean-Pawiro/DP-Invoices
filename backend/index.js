@@ -32,8 +32,20 @@ app.use("/api/company", require("./routes/company"));
 app.use("/api/rates", require("./routes/rates"));
 app.use("/api/database", require("./routes/database"));
 
-const PORT = process.env.BACKEND_PORT || 5000;
 
+// Serve frontend build in production
+const path = require('path');
+app.use(express.static(path.join(__dirname, '../frontend/build')));
+app.get('*', (req, res) => {
+  // Only serve index.html for non-API routes
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, '../frontend/build/index.html'));
+  } else {
+    res.status(404).json({ error: 'API endpoint not found' });
+  }
+});
+
+const PORT = process.env.BACKEND_PORT || 5000;
 const server = app.listen(PORT, () => {
   console.log(`🚀 Backend running at http://localhost:${PORT}`);
 });
