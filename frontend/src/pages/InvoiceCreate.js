@@ -56,7 +56,11 @@ export default function InvoiceCreate() {
   return (
     <div style={{ padding: 20 }}>
       <h2>Create Invoice</h2>
-
+      {invoiceNumber && (
+        <div style={{ marginBottom: 10, color: 'green' }}>
+          Invoice Number: {invoiceNumber}
+        </div>
+      )}
       <div>
         <label>Client:</label>
         <select value={selectedClient} onChange={(e) => setSelectedClient(e.target.value)}>

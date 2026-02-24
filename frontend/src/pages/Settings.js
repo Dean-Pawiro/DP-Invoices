@@ -36,7 +36,7 @@ export default function Settings({ onLogout }) {
   useEffect(() => {
     fetchDbStatus();
     fetchBackups();
-  }, []);
+  }, [fetchBackups]);
 
   const fetchDbStatus = async () => {
     try {
